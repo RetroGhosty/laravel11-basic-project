@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\JobListingController;
 use App\Models\Job;
 use App\Models\JobListing;
 use Illuminate\Http\Request;
@@ -14,44 +15,32 @@ Route::get("/about", function(){
     return view("about");
 });
 
+// Method 1
+// Route::get("/jobs", [JobListingController::class, 'index']);
+// Route::get("/jobs/create", [JobListingController::class, 'create']);
+// Route::post('/jobs/create', [JobListingController::class, 'store']);
+// Route::get("/jobs/{job}/edit", [JobListingController::class, 'edit']);
+// Route::put("/jobs/{job}", [JobListingController::class, 'update']);
+// Route::delete("/jobs/{job}", [JobListingController::class, 'destroy']);
+// Route::get("/jobs/{job}", [JobListingController::class, 'show']);
 
-// Contact page homework
-Route::get("/contact", function(){
-    return view("contact");
-});
+// Method 2
+// Route::controller(JobListingController::class)->group(function (){
+//     Route::get("/jobs", 'index');
+//     Route::get("/jobs/{job}", 'show');
+//     Route::get("/jobs/create", 'create');
+//     Route::post('/jobs/create', 'store');
+//     Route::get("/jobs/{job}/edit", 'edit');
+//     Route::put("/jobs/{job}", 'update');
+//     Route::delete("/jobs/{job}", 'destroy');
+// });
 
-Route::get("/jobs", function(){
-    $jobs = JobListing::with('employer')->latest()->simplePaginate(5);
+// Method 3
+Route::resource('jobs', JobListingController::class);
 
-    return view("jobs/index", [
-        'jobs' => $jobs
-    ]);
-});
+// Method 4
+// Route::resource('jobs', JobListingController::class, [
+//     // 'only' => ['index', 'show'],
+//     // 'except' => ['index', 'show']
+// ]);
 
-Route::get("/jobs/create", function (){
-    return view("jobs/create");
-});
-
-
-// Create a job post request
-Route::post('/jobs/create', function (Request $request){
-    $request->validate([
-        'title' => ['required', 'min:3'],
-        'salary' => ['required', 'numeric'],
-    ]);
-
-    JobListing::create([
-        'title' => request('title'),
-        'salary' => '$' . strval(request('salary')),
-        'employer_id' => 2
-    ]);
-    return redirect('/jobs');
-});
-
-Route::get("/jobs/{id}", function($id){
-    $job = JobListing::find($id);
-    if (!$job) {
-        abort(404);
-    }
-    return view('jobs/show', ['job' => $job]);
-});
